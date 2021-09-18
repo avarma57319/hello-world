@@ -48,8 +48,14 @@ ggtitle("Probability plot")
 # Now that you have looked at this data visually for normality, you will 
 #now quantify normality with numbers using the stat.desc() function. 
 #Include a screen capture of the results produced.
-stat.desc(df$HSDegree, basic = FALSE, norm = TRUE)
+options(scipen=100)
+options(digits=2)
+stat.desc(df$HSDegree, basic = TRUE, norm = TRUE)
 
 
 
 
+z_scores <- (df$HSDegree-mean(df$HSDegree))/sd(df$HSDegree)
+z_scores
+
+mean(z_scores)
