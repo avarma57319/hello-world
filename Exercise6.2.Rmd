@@ -1,0 +1,104 @@
+---
+title: "Exercise 6.2_Varma_Arjun"
+author: "Arjun Varma"
+date: "10/5/2021"
+output: html_document
+  
+
+---
+
+# Markdown Basics
+
+
+
+
+## Favorite Foods
+```{r, echo=FALSE}
+list_data <- list("Apple", "Ice Cream", "Walnuts")
+print(list_data)
+```
+
+
+
+
+
+## Images
+![10-all-cases-log](C:/Users/arjun/Documents/DSC520/DATA/10-all-cases-log.png)
+
+
+
+
+## Add a Quote
+Go ahead, make my day
+
+
+
+
+
+## Add an Equation
+$$
+E = mc^2
+$$
+## Add a Footnote
+
+^[This sentence will be printed as a footnote]
+
+
+
+## Add Citations
+* R for Everyone, Jared Lander, 2017,  https://www.jaredlander.com/r-for-everyone/
+* Discovering Statistics Using R, Andy Field, Jeremy Miles , et al., 2012,  https://www.discoveringstatistics.com/books/discovering-statistics-using-r/
+
+
+
+# Inline Code
+```{r, echo=FALSE}
+library(ggplot2)
+theme_set(theme_minimal())
+heights_df <- read.csv("C:/Users/arjun/Documents/DSC520/DATA/heights.csv")
+```
+
+
+## NY Times COVID-19 Data
+```{r, echo=FALSE}
+library(ggplot2)
+theme_set(theme_minimal())
+heights_df <- read.csv("C:/Users/arjun/Documents/DSC520/DATA/us.csv")
+```
+
+
+
+
+## R4DS Height vs Earnings
+
+```{r, echo=FALSE}
+library(ggplot2)
+theme_set(theme_minimal())
+heights_df <- read.csv("C:/Users/arjun/Documents/DSC520/DATA/heights.csv")
+ggplot(heights_df, aes(x=height, y=ï..earn)) + geom_point()
+```
+
+
+
+
+# Tables
+
+
+## Knitr Table with Kable
+
+```{r, echo=FALSE}
+characters_df <- read.csv("C:/Users/arjun/Documents/DSC520/DATA/lordoftherings.csv")
+knitr::kable(characters_df,
+             caption = "One Ring to Rule Them All")
+```
+
+
+
+
+## Pandoc Table
+
+
+
+
+# References
+* Field, A., J. Miles, and Z. Field. 2012. Discovering Statistics Using R. SAGE Publications. https://books.google.com/books?id=wd2K2zC3swIC.
