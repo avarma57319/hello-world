@@ -1,0 +1,155 @@
+---
+title: "Exercise8.2_Varma_Arjun"
+author: "Arjun Varma"
+date: "10/17/2021"
+output: pdf_document
+---
+
+
+
+## Setting home directory
+
+setwd("C:/Users/arjun/Documents/DSC520/DATA")
+getwd()
+
+
+## loading libraries
+library(ggplot2)
+library(pastecs)
+library(psych)
+library(readxl)
+library(Rcmdr)
+library(car)
+library(MASS)
+
+## loading file
+df <- read_excel("C:/Users/arjun/Documents/DSC520/DATA/week-7-housing.xlsx")
+
+head(df)
+
+str(df)
+
+## Data Cleaning
+df <- within(df, {
+  addr_full <- NULL
+  building_grade <- NULL
+  ctyname <- NULL
+  lat <- NULL
+  lon <- NULL
+  sale_instrument <- NULL 
+  sale_reason <- NULL
+  sale_warning <- NULL
+  sitetype <- NULL
+  year_renovated <- NULL 
+})
+
+df_Updated <- na.omit(df)
+
+
+str(df_Updated)
+
+
+## Creating two variables
+RegModel <- lm(Sale_Price~square_feet_total_living, data = df_Updated)
+
+summary(RegModel)
+
+RegModel_2 <- lm(Sale_Price~square_feet_total_living+bath_full_count+bath_half_count+bath_3qtr_count +bedrooms+sq_ft_lot, 
+  data = df_Updated)
+summary(RegModel_2)
+
+## #Considering the parameters of the multiple regression model you have created. What are the standardized betas for each parameter and what do the values indicate?
+
+compareCoefs(RegModel, RegModel_2)
+
+
+anova(RegModel, RegModel_2)
+
+
+## Calculate the confidence intervals for the parameters in your model and explain what the results indicate.
+
+library(MASS, pos = 18)
+with(df_Updated, (t.test(Sale_Price, square_feet_total_living, alternative = 'two.sided', conf.level = .95, paired = TRUE)))
+
+
+
+## Assess the improvement of the new model compared to your original model (simple regression model) by testing whether this change is significant by performing an analysis of variance.
+
+compareCoefs(RegModel, RegModel_2)
+
+
+## #Perform casewise diagnostics to identify outliers and/or influential cases, storing each function’s output in a dataframe assigned to a unique variable name.
+RegModelOrg <- 
+  lm(Sale_Price~square_feet_total_living+bath_3qtr_count+bath_full_count+bath_half_count+bedrooms+
+  building_grade+lat+lon+present_use+sale_instrument+sale_reason+sq_ft_lot+year_built+year_renovated+zip5,data=df)
+  
+summary(RegModelOrg)
+
+## Outlier testing
+outlierTest(RegModelOrg)
+outlierTest(RegModel)
+outlierTest(RegModel_2)
+
+
+## removing rows for outliers
+outliers_df <- df[-c(11992,6430,6438,6437,6431,6436,6441,6432,6442,6433,4649)]
+str(outliers_df)
+
+
+RegModel_3 <- lm(Sale_Price~square_feet_total_living, data = df_updated)
+summary(RegModel_3)
+
+RegModel_4 <- lm(Sale_Price~square_feet_total_living+bath_full_count+bath_half_count+bath_3qtr_count +bedrooms+sq_ft_lot, 
+  data = df_updated)
+summary(RegModel_4)
+
+
+## Calculate the standardized residuals using the appropriate command, specifying those that are +-2, storing the results of large residuals in a variable you create.
+
+outliers_df$standardized.residuals <- rstandard(RegModel_4)
+outliers_df$studentized.residuals <- rstudent(RegModel_4)
+outliers_df$cooks.distance <- cooks.distance(RegModel_4)
+outliers_df$dfbeta <- dfbeta(RegModel_4)
+outliers_df$leverage <- hatvalues(RegModel_4)
+outliers_df$covariance.ratios <- covratio(RegModel_4)
+
+str(outliers_df)
+
+
+## Use the appropriate function to show the sum of large residuals.
+outliers_df$large.residual <- outliers_df$standardized.residuals > 2 | outliers_df$studentized.residuals < -2
+
+str(Out_L_week_7_housing_updated)
+
+##Which specific variables have large residuals (only cases that evaluate as TRUE)?
+sum(outliers_df.residual)
+
+outliers_df[outliers_df$large.residual , c("Sale.Price", "square_feet_total_living", "bath_full_count", "bath_half_count", "bath_3qtr_count", "bedrooms", "sq_ft_lot")]
+
+
+##Investigate further by calculating the leverage, cooks distance, and covariance rations. Comment on all cases that are problematics.
+
+outliers_df[outliers_df$large.residual , c("leverage" , "cooks.distance","covariance.ratios")]
+
+##Perform the necessary calculations to assess the assumption of independence and state if the condition is met or not
+dwt(RegModel_4)
+
+
+###Visually check the assumptions related to the residuals using the plot() and hist() functions. Summarize what each graph is informing you of and if any anomalies are present.
+
+with(outliers_df, Hist(standardized.residuals, scale="FREQUENCY", breaks="Sturges", col="red", 
+  xlab="RESIDUALS"))
+  
+
+library(lattice, pos = 24)
+xyplot(square_feet_total_living ~ Sale.Price | large.residual, groups = large.residual, type = "p", pch = 16, 
+  auto.key = list(border = TRUE), par.settings = simpleTheme(pch = 16), scales = list(x = list(relation = 'same'), 
+  y = list(relation = 'same')), data = outliers_df)
+  
+  
+with(outliers_df, discretePlot(bedrooms, by = prop_type, scale = "frequency"))
+
+
+scatterplotMatrix(~Sale.Price+square_feet_total_living | large.residual, 
+regLine = FALSE, smooth = FALSE, diagonal = list(method = "density"), by.groups = TRUE, 
+data = outliers_df)
