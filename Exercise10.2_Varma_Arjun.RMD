@@ -1,0 +1,93 @@
+---
+title: "EXERCISE_10.2"
+author: "Arjun Varma"
+date: "11/1/2021"
+output: pdf_document
+---
+
+
+
+ThoracicSurgery <- read.csv("C:/Users/arjun/Documents/DSC520/DATA/ThoraricSurgery.csv")
+
+summary(ThoracicSurgery)
+
+View(ThoracicSurgery)
+
+
+##Fit a binary logistic regression model to the data set that predicts whether or not the patient survived for one year (the Risk1Y variable) after the surgery. Use the glm() function to perform the logistic regression. See Generalized Linear Models for an example. Include a summary using the summary() function in your results.
+
+## Testing with binary-logistic regression model= tumor size >=12  will indicate "True"
+
+ThoracicSurgery$Patient_Survival <- with(ThoracicSurgery, Tumor_Size >= 12 & Risk1Y >= 1)
+
+# Using glm() function for logistic regression.
+patient_surival_regression <- glm(Patient_Predicts_Survival ~ Age + Asthma + Smoking + PAD + MI_6mo + Diabetes_Mellitus + Tumor_Size + Weakness + Cough + Dyspnoea + Haemoptysis + Pain + Performance + FEV1 + FVC + Diagnosis + Risk1Y, data = ThoracicSurgery, family = binomial(link = "logit"))
+
+##Summary of the data showsFisher Scoring iterations of 25. Null deviance: 3.2698e+02  on 469 degrees of freedom which indicateshow well the response variable is predicted by a model that includes only the intercept.
+
+summary(patient_surival_regression)
+
+
+##According to the summary, which variables had the greatest effect on the survival rate?
+
+
+##Variables: SmokingTRUE, HaemoptysisTRUE, and Diagnosis had the highest negative effect while the variables Age, AsthmaTRUE, MI_6moTRUE, Diabetes_MellitusTRUE, Tumor_Size, and FEV1 highest positive effect on the survival rate.
+
+summary(patient_surival_regression)
+
+
+## To compute the accuracy of your model, use the dataset to predict the outcome variable. The percent of correct predictions is the accuracy of your model. What is the accuracy of your model?
+
+summary(ThoracicSurgery)
+
+## Calculating counts of patients who died within one year, using column: Risk1Y=1, as an indicator  470 records x mean= 0.1489; 470 * 0.1489 = 69.983. .
+data_set_deaths <- 470*0.1489
+data_set_deaths
+
+
+## However the patient survival regression model predicts 52 deaths
+
+
+Patient_Survival_counts <- 52
+Patient_Survival_counts
+
+
+
+## Calculate model accuracy
+##Patient_Survival_counts/ data_set_deaths 
+percent_of_accuracy <- Patient_Survival_counts/data_set_deaths
+percent_of_accuracy
+
+
+
+
+##Fit a logistic regression model to the binary-classifier-data.csv dataset
+##The dataset (found in binary-classifier-data.csv) contains three variables; label, x, and y. The label variable is either 0 or 1 and is the output we want to predict using the x and y variables.
+##What is the accuracy of the logistic regression classifier?
+
+
+binary_classifier_data <- read.csv("C:/Users/arjun/Documents/DSC520/DATA/binary-classifier-data.csv")
+head(binary_classifier_data)
+
+summary(binary_classifier_data)
+
+## logistic regression model analyzing X>=30  and  Y >=40, indicated by 'TRUE'
+binary_classifier_data$label_regression <- with(binary_classifier_data, x >= 30 & y >= 40)
+
+##Using glm() function to fit the logistic regression model with new -label regression variable.
+
+binary_classifier_regression <- glm(label_regression ~ label + x + y, data = binary_classifier_data, family = binomial())
+
+
+summary(binary_classifier_regression)
+## As seen in our logistic regression model we see that the AIC is 355.41 and Null Deviance=1951.48  on 1497  degrees of freedom.
+
+
+## What is the accuracy of the logistic regression classifier?
+summary(binary_classifier_data)
+
+
+## Summary of the binary_classifier_data 
+number_of_values_in_label_regression <- 534 +964
+percentage_of_true_label_regression <- 534/1498
+percentage_of_true_label_regression
