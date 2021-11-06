@@ -1,0 +1,105 @@
+---
+title: "10.3_Exercise_Varma_Arjun"
+author: "Arjun Varma"
+date: "11/2/2021"
+output: pdf_document
+---
+
+#Loading required packages
+library(tidyverse)
+library(caret)
+library(repr)
+library(caTools)
+library(rpart)
+library(rpart.plot)
+library(ggpubr)
+library(plyr)
+library(corrplot)
+library(ggplot2)
+library(gridExtra)
+library(ggthemes)
+library(MASS)
+library(randomForest)
+library(party)
+
+setwd ("C:/Users/arjun/Documents/DSC520/Data")
+# Importing .csv file into churn frame
+churn <- read.csv("C:/Users/arjun/Documents/DSC520/Data/Telco-Customer-Churn.csv")
+
+str(churn)
+
+# churn Cleaning - removing 'na'
+churn <- churn[complete.cases(churn),] # removing na's
+
+#changing column values
+churn <- data.frame(lapply(churn, function(x) {
+gsub("No internet service", "No", x)}))
+  
+churn <- data.frame(lapply(churn, function(x) {
+gsub("No phone service", "No", x)}))
+
+churn$SeniorCitizen <- as.factor(mapvalues(churn$SeniorCitizen,
+                                      from=c("0","1"),
+                                      to=c("No", "Yes")))
+                                      
+#converting double type variables to numeric
+num_columns <- c("tenure", "MonthlyCharges", "TotalCharges")
+churn[num_columns] <- sapply(churn[num_columns], as.numeric)
+                                      
+data_int <- churn[,c("tenure", "MonthlyCharges", "TotalCharges")]
+data_int <- data.frame(scale(data_int))
+
+#converting months to years
+churn <- mutate(churn, tenure_year = tenure)
+
+churn$tenure_year[churn$tenure_year >=0 & churn$tenure_year <= 12] <- '0-1 year'
+churn$tenure_year[churn$tenure_year > 12 & churn$tenure_year <= 24] <- '1-2 years'
+churn$tenure_year[churn$tenure_year > 24 & churn$tenure_year <= 36] <- '2-3 years'
+churn$tenure_year[churn$tenure_year > 36 & churn$tenure_year <= 48] <- '3-4 years'
+churn$tenure_year[churn$tenure_year > 48 & churn$tenure_year <= 60] <- '4-5 years'
+churn$tenure_year[churn$tenure_year > 60 & churn$tenure_year <= 72] <- '5-6 years'
+
+#Removing variables not needed for analysis
+churn$tenure_year <- as.factor(churn$tenure_year)
+
+churn_req <- churn[,-c(1,6,19,20)]
+x <- data.frame(sapply(churn_req,function(x) data.frame(model.matrix(~x-1,churn =churn_req))[,-1]))
+
+# remove the NA's
+x <- na.omit(x) 
+data_int <- na.omit(data_int) 
+
+churn_final <- cbind(x, data_int)
+
+
+# checking data after modifications
+
+str(churn)
+
+## EDA
+library(ggcorrplot)
+nv <- sapply(data_int, is.numeric)
+cormat <- cor(data_int[,nv])
+ggcorrplot::ggcorrplot(cormat, title = "Correlation of Numeric Variables")
+
+
+numeric.var <- sapply(churn, is.numeric)
+corr.matrix <- cor(churn[,numeric.var])
+corrplot(corr.matrix, main="\n\nCorrelation between Numerical Variables", method="number")
+
+
+# Monthly Charges and Total Charges are correlated
+# so removing total charges
+churn$TotalCharges <- NULL
+
+## bar plots for categorical variables
+
+p1 <- ggplot(churn, aes(x=gender)) + ggtitle("Gender") + xlab("Gender") +
+  geom_bar(aes(y = 100*(..count..)/sum(..count..)), width = 0.5) + ylab("Percentage") + coord_flip() + theme_minimal()
+p2 <- ggplot(churn, aes(x=SeniorCitizen)) + ggtitle("Senior Citizen") + xlab("Senior Citizen") + 
+  geom_bar(aes(y = 100*(..count..)/sum(..count..)), width = 0.5) + ylab("Percentage") + coord_flip() + theme_minimal()
+p3 <- ggplot(churn, aes(x=Partner)) + ggtitle("Partner") + xlab("Partner") + 
+  geom_bar(aes(y = 100*(..count..)/sum(..count..)), width = 0.5) + ylab("Percentage") + coord_flip() + theme_minimal()
+p4 <- ggplot(churn, aes(x=Dependents)) + ggtitle("Dependents") + xlab("Dependents") +
+  geom_bar(aes(y = 100*(..count..)/sum(..count..)), width = 0.5) + ylab("Percentage") + coord_flip() + theme_minimal()
+grid.arrange(p1, p2, p3, p4, ncol=2)
